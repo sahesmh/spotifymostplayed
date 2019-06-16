@@ -1,13 +1,13 @@
 import React, { Component } from 'react';
 
-class Home extends Component {
+class Short extends Component {
     render() {
         return (
             <div className="App">
-                <h1>Welcome To Spotify Most Played Playlist Generator</h1>                
+                <h1>Short-Term Most Played</h1>                
             </div>
         );
     }
 }
 
-export default Home;
+export default Short;
