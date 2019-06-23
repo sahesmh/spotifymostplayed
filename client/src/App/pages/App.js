@@ -16,10 +16,10 @@ class App extends Component {
       <div>        
         <Nav />
         <Switch>                    
-          <Route exact path='/' component={Home}/>
-          <Route path='/short' component={Short}/>
-          <Route path='/medium' component={Medium}/>
-          <Route path='/long' component={Long}/>
+          <Route path='/app' exact component={Home}/>
+          <Route path='/app/short' component={Short}/>
+          <Route path='/app/medium' component={Medium}/>
+          <Route path='/app/long' component={Long}/>
         </Switch>        
       </div>
     )

@@ -6,10 +6,10 @@ function Nav() {
         <nav>
             <h3>Spotify Most Played</h3>
             <ul>
-                <Link to='/'><li>Home</li></Link>
-                <Link to='/short'><li>Short-Term</li></Link>
-                <Link to ='/medium'><li>Medium-Term</li></Link>
-                <Link to ='/long'><li>Long-Term</li></Link>
+                <Link to='/app'><li>Home</li></Link>
+                <Link to='/app/short'><li>Short-Term</li></Link>
+                <Link to ='/app/medium'><li>Medium-Term</li></Link>
+                <Link to ='/app/long'><li>Long-Term</li></Link>
             </ul>
         </nav>
     )

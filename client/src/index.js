@@ -9,8 +9,8 @@ import Login from './App/pages/Login';
 render((
     <BrowserRouter>
         <Switch>
-            <Route path='/login' component={Login}/>
-            <Route path='/' component={App}/>
+            <Route exact path='/' component={Login}/>
+            <Route path='/app' component={App}/>
         </Switch>
         
     </BrowserRouter>
