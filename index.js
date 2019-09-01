@@ -37,21 +37,27 @@ app.get('/api/placeholder', (req, res) => {
 // Spotify Login endpoint
 app.get('/auth/spotify', function(req, res) {
 
-    var state = generateRandomString(16);
+    let state = generateRandomString(16);
     res.cookie(stateKey, state);
+    console.log(stateKey, state);
 
     // your application requests authorization
-    var scope = 'user-read-private user-read-email user-top-read';
-    console.log('Auth requrest recieved')
+    let scope = 'user-read-private user-read-email user-top-read';
+    console.log('Auth request received')
+
+    let responseURL = 'https://accounts.spotify.com/authorize?' +
+    queryString.stringify({
+        response_type: 'code',
+        client_id: process.env.CLIENT_ID,
+        scope: scope,
+        redirect_uri: 'http://localhost:5000/auth/spotify/callback',            
+        state: state
+    });
+
+    console.log("Response will be ", responseURL);
+
     res.json({
-        redirect_url: 'https://accounts.spotify.com/authorize?' +
-        queryString.stringify({
-            response_type: 'code',
-            client_id: process.env.CLIENT_ID,
-            scope: scope,
-            redirect_uri: 'http://localhost:5000/auth/spotify/callback',            
-            state: state
-        })
+        redirect_url: responseURL
     })    
 });
 

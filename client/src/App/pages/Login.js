@@ -18,16 +18,15 @@ class Login extends Component {
     }
 
     handleClick() {
-        const request = async() => {
-            const response = await fetch('http://localhost:5000/auth/spotify', {redirect: 'follow'});
-            const resjson = await response.json();
-            console.log(resjson);
-            // Redirect to /app
-            window.location.assign(resjson.redirect_url);
+        fetch('http://localhost:5000/auth/spotify')
+            .then(function(response) {
+                return response.json();
+            })
+            .then(function(myJSON) {
+                console.log(JSON.stringify(myJSON));
+                window.location.assign(myJSON.redirect_url);
+            })
         }
-
-        request();
-    }
 }
 
 export default withRouter(Login);
