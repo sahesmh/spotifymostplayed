@@ -1,6 +1,11 @@
 import React, { Component } from 'react';
 
 class Home extends Component {
+    componentDidMount() {
+        console.log(sessionStorage.getItem('user_access_token') || "NO ACCESS TOKEN");
+        console.log(sessionStorage.getItem('user_refresh_token') || "NO REFRESH TOKEN");
+    }
+
     render() {
         return (
             <div className="App">

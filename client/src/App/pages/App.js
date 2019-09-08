@@ -8,6 +8,7 @@ import Nav from './Nav';
 import Short from './Short';
 import Medium from './Medium';
 import Long from './Long';
+import Callback from './Callback';
 
 
 class App extends Component {
@@ -15,8 +16,9 @@ class App extends Component {
     const App = () => (
       <div>        
         <Nav />
-        <Switch>                    
+        <Switch>          
           <Route path='/app' exact component={Home}/>
+          <Route path='/app/callback' component={Callback}/>
           <Route path='/app/short' component={Short}/>
           <Route path='/app/medium' component={Medium}/>
           <Route path='/app/long' component={Long}/>

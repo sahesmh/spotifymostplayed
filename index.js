@@ -43,14 +43,13 @@ app.get('/auth/spotify', function(req, res) {
 
     // your application requests authorization
     let scope = 'user-read-private user-read-email user-top-read';
-    console.log('Auth request received')
-
+    console.log('Auth request received')    
     let responseURL = 'https://accounts.spotify.com/authorize?' +
     queryString.stringify({
         response_type: 'code',
         client_id: process.env.CLIENT_ID,
         scope: scope,
-        redirect_uri: 'http://localhost:5000/auth/spotify/callback',            
+        redirect_uri: 'http://localhost:3000/app/callback',            
         state: state
     });
 
@@ -62,33 +61,42 @@ app.get('/auth/spotify', function(req, res) {
 });
 
 // Spotify Callback enpoint
-app.get('/auth/spotify/callback', function(req, res) {
-
+// app.get('/auth/spotify/callback', function(req, res) {
+app.get('/callback/', function(req, res) {
+    console.log("Requesting Tokens")
     // Request refresh and access tokens after checking the state parameter
 
-    var code = req.query.code || null;
-    var state = req.query.state || null;
-    console.log(req.cookies);
-    var storedState = req.cookies ? req.cookies[stateKey] : null;
+    let code = req.query.code || null;
+    // const code = req.params.code || null;
+    let state = req.query.state || null;
+    // const state = req.params.state || null;
+    // console.log(req.cookies);
+    // var storedState = req.cookies ? req.cookies[stateKey] : null;
 
     // Verify State
-    if (state === null || state !== storedState) {
-        console.log('ERR: State Mismatch.', state, storedState)
+    // if (state === null || state !== storedState) {
+    //     console.log('ERR: State Mismatch.', state, storedState)
+    //     res.redirect('/#' +
+    //         queryString.stringify({
+    //         error: 'state_mismatch'
+    //     }));
+    if (state == null) {
+        // TODO Later: Figure out the best way to check state
+        console.log('ERR: No State')
         res.redirect('/#' +
             queryString.stringify({
             error: 'state_mismatch'
         }));
-        
     } else {
         // Clear state
-        res.clearCookie(stateKey);
+        // res.clearCookie(stateKey);
         
         // Construct Authorisation options
         var authOptions = {
             url: 'https://accounts.spotify.com/api/token',
             form: {
                 code: code,
-                redirect_uri: redirect_uri,
+                redirect_uri: 'http://localhost:3000/app/callback',
                 grant_type: 'authorization_code'
             },
             headers: {
@@ -97,9 +105,10 @@ app.get('/auth/spotify/callback', function(req, res) {
             },
             json: true
         };
-        
+        console.log(authOptions)
         // Request tokens
         request.post(authOptions, function(error, response, body) {
+            console.log("Response Status Code: ", response.statusCode)
             if (!error && response.statusCode === 200) {
                 
                 var access_token = body.access_token,
@@ -122,38 +131,43 @@ app.get('/auth/spotify/callback', function(req, res) {
                 //     access_token: access_token,
                 //     refresh_token: refresh_token
                 //     }))
+                console.log("Access Token: ", access_token)
+                console.log("Refresh Token: ", refresh_token)
                 res.json({
                     access_token: access_token,
                     refresh_token: refresh_token
                 })
                 
             } else {
-            res.redirect('/#' +
-                querystring.stringify({
-                error: 'invalid_token'
-                }));
+                console.log("ERROR!" , error);                
             }
         });
     }
 });
 
 // Get Long-Term Songs endpoint
-app.get('/generate_playlist', function(req, res) {
+app.get('/get-most-played', function(req, res) {
     console.log("Requesting songs");
+
+    const length = req.query.length || "long_term" // Will be short_term, medium_term or long_term
+    const access_token = req.query.access_token
+    
     // Construct Authorisation Options
     var authOptions = {
         url: 'https://api.spotify.com/v1/me/top/tracks?' + 
-            querystring.stringify({
-                'time_range': 'long_term',
+            queryString.stringify({
+                'time_range': length,
                 'limit': 50
         }),        
         headers: {
             'Accept'        : 'application/json',
             'Content-Type'  : 'application/json',
-            'Authorization' : 'Bearer ' + req.query.access_token
+            'Authorization' : 'Bearer ' + access_token
         },        
         json: true
     };
+
+    console.log(authOptions)
 
     // Request Tracks
     request.get(authOptions, function(error, response, body) {        
@@ -174,16 +188,14 @@ app.get('/generate_playlist', function(req, res) {
             });
         } else {
             console.log("Error: ", error);
-            res.redirect('/#' +
-                querystring.stringify({
-                error: 'invalid_token'
-                }));
+            // TODO Error Handling
             }
     });
 });
 
 // 'Any Other Request' endpoint
 app.get('*', (req,res) =>{
+    console.log("User reached Any Other Requests endpoint with URL ", req.originalUrl)
     res.sendFile(path.join(__dirname+'/client/public/index.html'));
 });
 
