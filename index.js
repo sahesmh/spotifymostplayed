@@ -172,13 +172,14 @@ app.get('/get-most-played', function(req, res) {
     // Request Tracks
     request.get(authOptions, function(error, response, body) {        
         console.log("GET Response ", response.statusCode);        
-        if (!error && response.statusCode === 200) {
+        if (!error && response.statusCode === 200) {            
             let numTracks = body.items.length;
             let trackData = {};
             for (trackNum = 0; trackNum < numTracks; trackNum++) {
                 let track = {
                     uri     : body.items[trackNum].uri,                    
-                    name    : body.items[trackNum].name
+                    name    : body.items[trackNum].name,
+                    artists : body.items[trackNum].artists
                 };
                 trackData[trackNum] = track;
             }
