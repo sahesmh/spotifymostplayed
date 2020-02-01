@@ -25,6 +25,17 @@ class Long extends Component {
             })
     }
 
+    generatePlaylist() {
+        let apiURL = "http://localhost:5000/create-playlist?" + 
+            queryString.stringify({
+                length: "long_term", 
+                access_token: sessionStorage.getItem("user_access_token")
+            });
+        fetch(apiURL).then((response) => {
+            console.log(response.json)
+        })
+    }
+
     render() {
         if (this.state.long_term !== '') {
             // Data is stored as an object, need to convert to array for map function
@@ -42,7 +53,11 @@ class Long extends Component {
                                 ))}{track.artists[track.artists.length-1].name}</li>
                     ))}
                     </ol>                    
+                    <button onClick={this.generatePlaylist}>
+                        Generate Playlist
+                    </button>
                 </div>
+                
             );
         }
         return (

@@ -42,7 +42,7 @@ app.get('/auth/spotify', function(req, res) {
     console.log(stateKey, state);
 
     // your application requests authorization
-    let scope = 'user-read-private user-read-email user-top-read';
+    let scope = 'user-read-private user-read-email user-top-read playlist-modify-private';
     console.log('Auth request received')    
     let responseURL = 'https://accounts.spotify.com/authorize?' +
     queryString.stringify({
@@ -145,7 +145,7 @@ app.get('/callback/', function(req, res) {
     }
 });
 
-// Get Long-Term Songs endpoint
+// Get Most Played Songs endpoint
 app.get('/get-most-played', function(req, res) {
     console.log("Requesting songs");
 
@@ -192,6 +192,78 @@ app.get('/get-most-played', function(req, res) {
             // TODO Error Handling
             }
     });
+});
+
+// Create Playlist endpoint
+app.get('/create-playlist', function(req, res) {
+    let userID = "UNPOPULATED";
+    let playlistID = "UNPOPULATED"
+    console.log("Making a playlist")
+
+    // Lets make the bold assumption that making a new playlist
+    // will overwrite an old one by the same name. Or at least
+    // not break things
+
+    const length = req.query.length || "long_term"
+    const access_token = req.query.access_token
+
+    // Get User's ID
+    var authOptionsID = {
+        url: 'https://api.spotify.com/v1/me',        
+        headers: {
+            'Accept'        : 'application/json',
+            'Content-Type'  : 'application/json',
+            'Authorization' : 'Bearer ' + access_token
+        },        
+        json: true
+    };
+        
+    request.get(authOptionsID, function(error, response, body) {
+        console.log("GET Response ", response.statusCode);
+        let reqSuccess = !error && response.statusCode === 200;
+        if (reqSuccess) {
+            userID = body.id;
+
+            // Create new playlist, and store identifier
+            var authOptionsPlaylistMake = {
+                url: 'https://api.spotify.com/v1/users/' + userID + '/playlists',        
+                headers: {
+                    'Accept'        : 'application/json',
+                    'Content-Type'  : 'application/json',
+                    'Authorization' : 'Bearer ' + access_token
+                },
+                data: queryString.stringify({
+                    name: "Most Played - " + length,
+                    public: false,
+                    collaborative: false,
+                    description: "Courtesy of Shane :D"
+                }),
+                json: true
+            };
+
+            request.post(authOptionsPlaylistMake, function(error, response, body) {
+                console.log("GET Response ", response.statusCode);
+                let reqSuccess = !error && response.statusCode === 200;
+                if (reqSuccess) {
+                    playlistID = body.id
+
+                    // Replace songs in playlist with new list
+                    console.log("User ID: " + userID);
+                    console.log("Playlist ID: " + playlistID)
+                    res.send({
+                        userID: userID,
+                        playlistID: playlistID
+                    })
+                }
+            })
+                }
+    })
+
+    
+
+
+    
+
 });
 
 // 'Any Other Request' endpoint
