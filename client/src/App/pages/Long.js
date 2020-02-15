@@ -21,18 +21,29 @@ class Long extends Component {
             .then((myJSON) => {
                 this.setState(() => ({
                     long_term: myJSON
-                }))                
+                }))
+                console.log(myJSON)
             })
     }
 
-    generatePlaylist() {
+    generatePlaylist() {        
+        let songsArray = Object.values(this.state.long_term['trackData']);
+        console.log("Songs Array (?): ");
+        console.log(songsArray);
+        // let reducer = (accumulator, currentValue) => accumulator + ',' + currentValue;
+        // let songs = songsArray.reduce(reducer);
+        let songs = songsArray.map(track => (track.uri)).join(',');
+        
+        
         let apiURL = "http://localhost:5000/create-playlist?" + 
             queryString.stringify({
                 length: "long_term", 
-                access_token: sessionStorage.getItem("user_access_token")
+                access_token: sessionStorage.getItem("user_access_token"),
+                songList: songs
             });
+        console.log(apiURL);
         fetch(apiURL).then((response) => {
-            console.log(response.json)
+            console.log(response.successful === true)
         })
     }
 
@@ -53,7 +64,7 @@ class Long extends Component {
                                 ))}{track.artists[track.artists.length-1].name}</li>
                     ))}
                     </ol>                    
-                    <button onClick={this.generatePlaylist}>
+                    <button onClick={(event) => { this.generatePlaylist(event) }}>
                         Generate Playlist
                     </button>
                 </div>

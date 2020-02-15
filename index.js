@@ -105,6 +105,24 @@ app.get('/callback/', function(req, res) {
             },
             json: true
         };
+
+        // const postOptions = {
+        //     method: 'POST',
+        //     headers: {
+        //         'Authorization': 'Basic ' + 
+        //             (new Buffer(process.env.CLIENT_ID + ':' + process.env.CLIENT_SECRET).toString('base64'))
+        //     }
+        // }
+
+        // let postReqestTokens = http.request(postOptions, function(res) {
+        //     res.on('data'), function(retVal) {
+        //         console.log(retVal)
+        //     }
+        // })
+
+        // post
+
+
         console.log(authOptions)
         // Request tokens
         request.post(authOptions, function(error, response, body) {
@@ -197,7 +215,7 @@ app.get('/get-most-played', function(req, res) {
 // Create Playlist endpoint
 app.get('/create-playlist', function(req, res) {
     let userID = "UNPOPULATED";
-    let playlistID = "UNPOPULATED"
+    let playlistID = "UNPOPULATED"    
     console.log("Making a playlist")
 
     // Lets make the bold assumption that making a new playlist
@@ -206,6 +224,7 @@ app.get('/create-playlist', function(req, res) {
 
     const length = req.query.length || "long_term"
     const access_token = req.query.access_token
+    const songList = req.query.songList
 
     // Get User's ID
     var authOptionsID = {
@@ -223,6 +242,7 @@ app.get('/create-playlist', function(req, res) {
         let reqSuccess = !error && response.statusCode === 200;
         if (reqSuccess) {
             userID = body.id;
+            console.log("Obtained User ID: " + userID)
 
             // Create new playlist, and store identifier
             var authOptionsPlaylistMake = {
@@ -232,31 +252,64 @@ app.get('/create-playlist', function(req, res) {
                     'Content-Type'  : 'application/json',
                     'Authorization' : 'Bearer ' + access_token
                 },
-                data: queryString.stringify({
+                json: {
                     name: "Most Played - " + length,
                     public: false,
                     collaborative: false,
                     description: "Courtesy of Shane :D"
-                }),
-                json: true
+                }                
             };
 
+            
+
             request.post(authOptionsPlaylistMake, function(error, response, body) {
-                console.log("GET Response ", response.statusCode);
-                let reqSuccess = !error && response.statusCode === 200;
+                console.log("POST Response ", response.statusCode);
+                let reqSuccess = !error && (response.statusCode === 200 || response.statusCode === 201);
                 if (reqSuccess) {
                     playlistID = body.id
 
                     // Replace songs in playlist with new list
                     console.log("User ID: " + userID);
                     console.log("Playlist ID: " + playlistID)
-                    res.send({
-                        userID: userID,
-                        playlistID: playlistID
+                    console.log("Song List: " + songList)
+
+                    let authOptionsPlaylistReplace = {
+                        url: 'https://api.spotify.com/v1/playlists/' + playlistID + '/tracks?uris=' + songList,
+                        headers: {
+                            'Accept'        : 'application/json',
+                            'Content-Type'  : 'application/json',
+                            'Authorization' : 'Bearer ' + access_token
+                        },
+                        json: true
+                    };
+
+                    let playlistReplace = request.post(authOptionsPlaylistReplace, function (error, response, body) {
+                        console.log("POST Response: ", response.statusCode);
+                        let reqSuccess = !error && response.statusCode === 201;
+                        if (reqSuccess) {
+                            console.log("Successfully added songs to Playlist " + playlistID)
+                            res.send({
+                                successful: true
+                            })
+                        } else {
+                            console.log("UNSUCCESSFUL POST")                            
+                            console.log(body)
+                            res.send({
+                                successful: false
+                            })
+                        }
                     })
+                    console.log(playlistReplace)
+                    
+                } else {
+                    console.log("ERROR Creating Playlist")
+                    console.log("Error: " + error)
                 }
             })
-                }
+        } else {
+            console.log("ERROR Obtaining list of users playlists")
+            console.log(error)
+        }
     })
 
     
