@@ -3,7 +3,9 @@ import queryString from 'query-string'
 
 class Long extends Component {
     state = {
-        long_term: ''
+        long_term: '',
+        generatedSuccessfuly : false,
+        playlistID: ''
     }
     componentDidMount() {
         console.log(sessionStorage.getItem('user_access_token') || "NO ACCESS TOKEN");
@@ -28,10 +30,6 @@ class Long extends Component {
 
     generatePlaylist() {        
         let songsArray = Object.values(this.state.long_term['trackData']);
-        console.log("Songs Array (?): ");
-        console.log(songsArray);
-        // let reducer = (accumulator, currentValue) => accumulator + ',' + currentValue;
-        // let songs = songsArray.reduce(reducer);
         let songs = songsArray.map(track => (track.uri)).join(',');
         
         
@@ -42,8 +40,16 @@ class Long extends Component {
                 songList: songs
             });
         console.log(apiURL);
+        
         fetch(apiURL).then((response) => {
-            console.log(response.successful === true)
+            const resJSON = response.json();            
+            this.setState((state, props) => {
+                return {
+                    generatedSuccessfuly : resJSON.successful,
+                    playlistID: resJSON.playlistID
+                }
+            });
+            console.log("Successful creation of playlist " + resJSON.playlistID + ": " + resJSON.successful)
         })
     }
 
@@ -64,11 +70,10 @@ class Long extends Component {
                                 ))}{track.artists[track.artists.length-1].name}</li>
                     ))}
                     </ol>                    
-                    <button onClick={(event) => { this.generatePlaylist(event) }}>
-                        Generate Playlist
+                    <button onClick={(event) => {this.generatePlaylist(event)}}>
+                        {!this.state.generatedSuccessfuly ? "Click to Generate Playlist" : "Playlist Generated! Click to make it again..."}
                     </button>
-                </div>
-                
+                </div>                
             );
         }
         return (

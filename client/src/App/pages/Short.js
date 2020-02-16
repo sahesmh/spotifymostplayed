@@ -3,7 +3,9 @@ import queryString from 'query-string'
 
 class Short extends Component {
     state = {
-        short_term: ''
+        short_term: '',
+        generatedSuccessfuly : false,
+        playlistID: ''
     }
     componentDidMount() {
         console.log(sessionStorage.getItem('user_access_token') || "NO ACCESS TOKEN");
@@ -21,8 +23,34 @@ class Short extends Component {
             .then((myJSON) => {
                 this.setState(() => ({
                     short_term: myJSON
-                }))                
+                }))
+                console.log(myJSON)
             })
+    }
+
+    generatePlaylist() {        
+        let songsArray = Object.values(this.state.short_term['trackData']);
+        let songs = songsArray.map(track => (track.uri)).join(',');
+        
+        
+        let apiURL = "http://localhost:5000/create-playlist?" + 
+            queryString.stringify({
+                length: "short_term", 
+                access_token: sessionStorage.getItem("user_access_token"),
+                songList: songs
+            });
+        console.log(apiURL);
+        
+        fetch(apiURL).then((response) => {
+            const resJSON = response.json();            
+            this.setState((state, props) => {
+                return {
+                    generatedSuccessfuly : resJSON.successful,
+                    playlistID: resJSON.playlistID
+                }
+            });
+            console.log("Successful creation of playlist " + resJSON.playlistID + ": " + resJSON.successful)
+        })
     }
 
     render() {
@@ -42,7 +70,10 @@ class Short extends Component {
                                 ))}{track.artists[track.artists.length-1].name}</li>
                     ))}
                     </ol>                    
-                </div>
+                    <button onClick={(event) => {this.generatePlaylist(event)}}>
+                        {!this.state.generatedSuccessfuly ? "Click to Generate Playlist" : "Playlist Generated! Click to make it again..."}
+                    </button>
+                </div>                
             );
         }
         return (

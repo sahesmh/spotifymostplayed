@@ -61,7 +61,6 @@ app.get('/auth/spotify', function(req, res) {
 });
 
 // Spotify Callback enpoint
-// app.get('/auth/spotify/callback', function(req, res) {
 app.get('/callback/', function(req, res) {
     console.log("Requesting Tokens")
     // Request refresh and access tokens after checking the state parameter
@@ -106,29 +105,12 @@ app.get('/callback/', function(req, res) {
             json: true
         };
 
-        // const postOptions = {
-        //     method: 'POST',
-        //     headers: {
-        //         'Authorization': 'Basic ' + 
-        //             (new Buffer(process.env.CLIENT_ID + ':' + process.env.CLIENT_SECRET).toString('base64'))
-        //     }
-        // }
-
-        // let postReqestTokens = http.request(postOptions, function(res) {
-        //     res.on('data'), function(retVal) {
-        //         console.log(retVal)
-        //     }
-        // })
-
-        // post
-
-
         console.log(authOptions)
         // Request tokens
         request.post(authOptions, function(error, response, body) {
             console.log("Response Status Code: ", response.statusCode)
-            if (!error && response.statusCode === 200) {
-                
+            const reqSuccess = !error && response.statusCode === 200
+            if (reqSuccess) {                
                 var access_token = body.access_token,
                     refresh_token = body.refresh_token;
                 
@@ -138,17 +120,11 @@ app.get('/callback/', function(req, res) {
                     json: true
                 };
 
-                // use the access token to access the Spotify Web API
+                // Use the access token to access the Spotify Web API
                 request.get(options, function(error, response, body) {
                     console.log(body);
                 });
-
-                // we can also pass the token to the browser to make requests from there
-                // res.redirect('/#' +
-                //     querystring.stringify({
-                //     access_token: access_token,
-                //     refresh_token: refresh_token
-                //     }))
+                
                 console.log("Access Token: ", access_token)
                 console.log("Refresh Token: ", refresh_token)
                 res.json({
@@ -187,10 +163,12 @@ app.get('/get-most-played', function(req, res) {
 
     console.log(authOptions)
 
-    // Request Tracks
+    // Request User's Most-Played Tracks for the given length
     request.get(authOptions, function(error, response, body) {        
         console.log("GET Response ", response.statusCode);        
-        if (!error && response.statusCode === 200) {            
+        const reqSuccess = !error && response.statusCode === 200;
+        if (reqSuccess) {            
+            console.log("Successfully retrieved tracks")
             let numTracks = body.items.length;
             let trackData = {};
             for (trackNum = 0; trackNum < numTracks; trackNum++) {
@@ -201,14 +179,14 @@ app.get('/get-most-played', function(req, res) {
                 };
                 trackData[trackNum] = track;
             }
+            
             console.log(trackData);
             res.send({
                 trackData: trackData
             });
         } else {
-            console.log("Error: ", error);
-            // TODO Error Handling
-            }
+            console.log("Error retrieving tracks: ", error);            
+        }
     });
 });
 
@@ -260,15 +238,13 @@ app.get('/create-playlist', function(req, res) {
                 }                
             };
 
-            
-
             request.post(authOptionsPlaylistMake, function(error, response, body) {
                 console.log("POST Response ", response.statusCode);
                 let reqSuccess = !error && (response.statusCode === 200 || response.statusCode === 201);
                 if (reqSuccess) {
                     playlistID = body.id
 
-                    // Replace songs in playlist with new list
+                    // Add songs to this new playlist
                     console.log("User ID: " + userID);
                     console.log("Playlist ID: " + playlistID)
                     console.log("Song List: " + songList)
@@ -289,13 +265,15 @@ app.get('/create-playlist', function(req, res) {
                         if (reqSuccess) {
                             console.log("Successfully added songs to Playlist " + playlistID)
                             res.send({
-                                successful: true
+                                successful: true,
+                                playlistID: playlistID
                             })
                         } else {
                             console.log("UNSUCCESSFUL POST")                            
                             console.log(body)
-                            res.send({
-                                successful: false
+                            res.json({
+                                successful: false,
+                                playlistID: playlistID
                             })
                         }
                     })
